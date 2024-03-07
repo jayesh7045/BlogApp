@@ -3,33 +3,38 @@ const bcrypt = require("bcrypt");
 //create user register user
 exports.registerController = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, image} = req.body;
     //validation
     if (!username || !email || !password) {
-      return res.status(400).send({
+      return res.status(401).send({
         success: false,
         message: "Please Fill all fields",
       });
     }
     //exisiting user
     const exisitingUser = await userRegistration.findOne({ email });
-    if (exisitingUser) {
+    if (exisitingUser && exisitingUser.username === username) {
       return res.status(401).send({
         success: false,
         message: "user already exisits",
       });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    //save new user
-    const user = new userRegistration({ username, email, password: hashedPassword });
+    const user = new userRegistration({
+      username,
+      email,
+      password: hashedPassword,
+      image : image,
+    });
     await user.save();
+    console.log(user);
     return res.status(201).send({
       success: true,
       message: "New User Created",
       user,
     });
   } catch (error) {
+    console.log("Hello Ji");
     console.log(error);
     return res.status(500).send({
       message: "Error In Register callback",
@@ -58,8 +63,6 @@ exports.getAllUsers = async (req, res) => {
     });
   }
 };
-
-//login
 exports.loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -72,25 +75,26 @@ exports.loginController = async (req, res) => {
       });
     }
     const user = await userRegistration.findOne({ email });
-    if (!user) {
+    
+    if (user) {
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(401).send({
+          success: false,
+          message: "Invalid username or password",
+        });
+      }
       return res.status(200).send({
-        success: false,
-        message: "email is not registerd",
+        success: true,
+        message: "login successfully",
+        user,
       });
-    }
-    //password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    } else {
       return res.status(401).send({
         success: false,
-        message: "Invalid username or password",
+        message: "Email is not registerd",
       });
     }
-    return res.status(200).send({
-      success: true,
-      message: "login successfully",
-      user,
-    });
   } catch (error) {
     console.log(error);
     return res.status(500).send({

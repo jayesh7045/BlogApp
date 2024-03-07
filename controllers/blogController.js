@@ -33,10 +33,11 @@ exports.createBlogController = async (req, res) => {
   try {
     const { title, description, image, user } = req.body;
     //validation
-    if (!title || !description || !image || !user) {
+    if (!title || !description || !user) {
       return res.status(400).send({
         success: false,
         message: "Please Provide All Fields",
+        status : 400
       });
     }
     const exisitingUser = await userRegistration.findById(user);

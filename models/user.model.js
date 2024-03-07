@@ -14,6 +14,9 @@ const userSchema = new mongoose.Schema({
         type : String, 
         required : [true, "password is required"]
     },
+    image : {
+        type : String, 
+    },
     blogs : [{
         type : mongoose.Types.ObjectId,
         ref : blogModel
